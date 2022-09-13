@@ -1,14 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_news_app/src/model/news_model.dart';
-import 'package:flutter_news_app/src/presentation/provider/dataclass.dart';
-import 'package:flutter_news_app/src/presentation/widget/posts.dart';
-import 'package:http/http.dart';
-import 'package:provider/provider.dart';
-
-import '../../services/service.dart';
+import 'package:flutter_news_app/src/core/strings.dart';
+import 'package:flutter_news_app/src/presentation/screens/all_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -24,14 +17,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
-
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
+      backgroundColor: Colors.white,
       body: Column(
         children: [
           Padding(
@@ -41,17 +34,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               children: [
                 Expanded(
                     child: Container(
-                  padding: const EdgeInsets.only(left: 12),
-                  height: 40,
+                  padding: const EdgeInsets.only(left: 12, bottom: 4),
+                  height: 36,
                   decoration: BoxDecoration(
                       color: Colors.transparent,
                       borderRadius: const BorderRadius.all(Radius.circular(26)),
                       border: Border.all(color: Colors.black12)),
                   child: const TextField(
                     decoration: InputDecoration(
-                      hintText: "Searching",
-                      suffixIcon:
-                          Icon(Icons.search_rounded, color: Color(0xff818181)),
+                      hintText: searching,
+                      hintStyle: TextStyle(fontSize: 13),
+                      suffixIcon: Icon(Icons.search_rounded,
+                          color: Color(0xff818181), size: 20),
                       border: InputBorder.none,
                     ),
                     textInputAction: TextInputAction.done,
@@ -60,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 const SizedBox(width: 8),
                 const CircleAvatar(
                     backgroundColor: Color(0xffFF3A44),
-                    radius: 20,
+                    radius: 18,
                     child: Icon(
                       Icons.notifications_on_outlined,
                       size: 25,
@@ -71,6 +65,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
           const SizedBox(height: 6),
           TabBar(
+            splashBorderRadius: const BorderRadius.all(Radius.circular(20)),
             onTap: (value) {
               setState(() {
                 index = value;
@@ -79,72 +74,66 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             controller: _tabController,
             labelColor: Colors.white,
             unselectedLabelColor: const Color(0x992E0505),
-            unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500),
+            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w400),
             indicatorColor: Colors.transparent,
             labelStyle:
-                const TextStyle(fontWeight: FontWeight.w700, fontSize: 22),
+                const TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
             isScrollable: true,
             tabs: [
               Container(
+                height: 30,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                    color: index == 0 ? const Color(0xffFF3A44) : Colors.white,
-                    borderRadius: const BorderRadius.all(Radius.circular(20))),
-                child: const Tab(text: "All"),
+                  color: index == 0 ? const Color(0xffFF3A44) : Colors.white,
+                  borderRadius: const BorderRadius.all(Radius.circular(20)),
+                  border: Border.all(color: const Color(0xfff0f1fA)),
+                ),
+                child: const Tab(text: all),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
+                height: 30,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                    color: index == 1 ? const Color(0xffFF3A44) : Colors.white,
-                    borderRadius: const BorderRadius.all(Radius.circular(20)),
-                    border: Border.all(color: const Color(0xfff0f1fA))),
-                child: const Tab(text: "Technology"),
+                  color: index == 1 ? const Color(0xffFF3A44) : Colors.white,
+                  borderRadius: const BorderRadius.all(Radius.circular(20)),
+                  border: Border.all(color: const Color(0xfff0f1fA)),
+                ),
+                child: const Tab(text: technology),
               ),
               Container(
+                height: 30,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
                     color: index == 2 ? const Color(0xffFF3A44) : Colors.white,
-                    borderRadius: const BorderRadius.all(Radius.circular(20))),
-                child: const Tab(text: "Finance"),
+                    borderRadius: const BorderRadius.all(Radius.circular(20)),
+                    border: Border.all(color: const Color(0xfff0f1fA))),
+                child: const Tab(text: finance),
+              ),
+              Container(
+                height: 30,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                    color: index == 3 ? const Color(0xffFF3A44) : Colors.white,
+                    borderRadius: const BorderRadius.all(Radius.circular(20)),
+                    border: Border.all(color: const Color(0xfff0f1fA))),
+                child: const Tab(text: sport),
               ),
             ],
           ),
+          const SizedBox(height: 8),
           Expanded(
             child: TabBarView(
               controller: _tabController,
               children: [
-                FutureBuilder(
-                  future: DataService.fetchDataAPI(),
-                  builder: (_, AsyncSnapshot<List<Articles>> snapshot) {
-                    if (!snapshot.hasData) {
-                      return const Center(
-                        child: CircularProgressIndicator.adaptive(),
-                      );
-                    } else if (snapshot.hasError) {
-                      if (kDebugMode) {
-                        print('Error => ${snapshot.error}');
-                      }
-                    }
-                    List<Articles> data = snapshot.data!;
-                    return ListView.builder(
-                      itemCount: data.length,
-                      itemBuilder: (context, index) {
-                        return BuildPost(
-                          data[index].title!,
-                          data[index].urlToImage ?? '',
-                          data[index].description ?? '',
-                          data[index].publishedAt!,
-                          data[index].author??'',
-                        );
-                      },
-                    );
-                  },
-                ),
+                const AllPage(),
                 Container(
                   color: Colors.yellow,
                 ),
                 Container(
                   color: Colors.red,
+                ),
+                Container(
+                  color: Colors.green,
                 ),
               ],
             ),
